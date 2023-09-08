@@ -1,13 +1,35 @@
+//! Calculations done with finite fields, which are represented as bytes
+
+/// The irreducible finite field associated with AES encryption
+const M_X: u8 = 0x1b;
+
+/// Add two finite fields together
 pub fn ff_add(x: u8, y: u8) -> u8 {
 	x ^ y
 }
 
+/// Multiply a finite field by `x`
 pub fn x_time(x: u8) -> u8 {
-	0
+	if (x & 0b10000000) == 0 {
+		x << 1
+	} else {
+		(x << 1) ^ M_X
+	}
 }
 
+/// Multiply two finite fields together
 pub fn ff_multiply(x: u8, y: u8) -> u8 {
-	0
+	let mut current_field = x;
+	let mut remaining_bits = y;
+	let mut result = 0;
+
+	loop {
+		if remaining_bits == 0 { return result; }
+		if remaining_bits & 1 == 1 { result = ff_add(result, current_field); }
+
+		remaining_bits >>= 1;
+		current_field = x_time(current_field);
+	}
 }
 
 #[cfg(test)]
