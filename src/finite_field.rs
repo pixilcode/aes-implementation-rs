@@ -24,8 +24,13 @@ pub fn ff_multiply(x: u8, y: u8) -> u8 {
 	let mut result = 0;
 
 	loop {
-		if remaining_bits == 0 { return result; }
-		if remaining_bits & 1 == 1 { result = ff_add(result, current_field); }
+		if remaining_bits == 0 {
+			return result;
+		}
+
+		if (remaining_bits & 1) == 1 {
+			result = ff_add(result, current_field);
+		}
 
 		remaining_bits >>= 1;
 		current_field = x_time(current_field);
