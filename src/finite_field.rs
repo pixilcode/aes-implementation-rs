@@ -1,5 +1,5 @@
 pub fn ff_add(x: u8, y: u8) -> u8 {
-	0
+	x ^ y
 }
 
 pub fn x_time(x: u8) -> u8 {
