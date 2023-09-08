@@ -4,12 +4,12 @@
 const M_X: u8 = 0x1b;
 
 /// Add two finite fields together
-pub fn ff_add(x: u8, y: u8) -> u8 {
+fn ff_add(x: u8, y: u8) -> u8 {
 	x ^ y
 }
 
 /// Multiply a finite field by `x`
-pub fn x_time(x: u8) -> u8 {
+fn x_time(x: u8) -> u8 {
 	if (x & 0b10000000) == 0 {
 		x << 1
 	} else {
@@ -18,7 +18,7 @@ pub fn x_time(x: u8) -> u8 {
 }
 
 /// Multiply two finite fields together
-pub fn ff_multiply(x: u8, y: u8) -> u8 {
+fn ff_multiply(x: u8, y: u8) -> u8 {
 	let mut current_field = x;
 	let mut remaining_bits = y;
 	let mut result = 0;
