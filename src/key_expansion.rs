@@ -1,12 +1,24 @@
+use crate::constant::S_BOX;
+
 fn sub_word(word: u32) -> u32 {
-	0
+	let word_bytes = word.to_be_bytes();
+
+	let sub_bytes: Vec<u8> = word_bytes.into_iter()
+		.map(|byte| {
+			let row = (byte >> 4) & 0b1111;
+			let column = byte & 0b1111;
+			S_BOX[row as usize][column as usize]
+		})
+		.collect();
+
+	u32::from_be_bytes(sub_bytes.try_into().unwrap())
 }
 
 fn rot_word(word: u32) -> u32 {
-	0
+	word.rotate_left(8)
 }
 
-pub fn key_expansion(key: &[u8]) -> [u32; 44] {
+pub fn key_expansion(key: &[u8; 16]) -> [u32; 44] {
 	todo!()
 }
 
