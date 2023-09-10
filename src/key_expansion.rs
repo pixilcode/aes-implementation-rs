@@ -1,4 +1,4 @@
-use crate::constant::S_BOX;
+use crate::constant::{S_BOX, KeyType, R_CON};
 
 fn sub_word(word: u32) -> u32 {
 	let word_bytes = word.to_be_bytes();
@@ -18,8 +18,43 @@ fn rot_word(word: u32) -> u32 {
 	word.rotate_left(8)
 }
 
-pub fn key_expansion(key: &[u8; 16]) -> [u32; 44] {
-	todo!()
+pub fn key_expansion(key: &[u8], key_type: KeyType) -> Vec<u32> {
+	let n_k = key_type.n_k();
+	let n_b = key_type.n_b();
+	let n_r = key_type.n_r();
+
+	let mut result = Vec::new();
+	
+	// fill in first `n_k` words with the key
+	for i in 0..n_k {
+		let index = i * 4;
+		let word = u32::from_be_bytes([
+			key[index],
+			key[index + 1],
+			key[index + 2],
+			key[index + 3],
+		]);
+		result.push(word);
+	}
+
+	for i in n_k..(n_b * (n_r + 1)) {
+		let prev_word = result[i - 1];
+
+		let transformed =
+			if i % n_k == 0 {
+				sub_word(rot_word(prev_word)) ^ R_CON[i / n_k]
+			} else if n_k > 6 && i % n_k == 4 {
+				sub_word(prev_word)
+			} else {
+				prev_word
+			};
+		
+		let new_word = result[i - n_k] ^ transformed;
+
+		result.push(new_word);
+	}
+
+	result
 }
 
 #[cfg(test)]
@@ -61,6 +96,6 @@ mod tests {
             0xd014f9a8, 0xc9ee2589, 0xe13f0cc8, 0xb6630ca6,
 		];
 
-		assert_eq!(key_expansion(&key), expanded);
+		assert_eq!(key_expansion(&key, KeyType::Aes128), expanded);
 	}
 }
