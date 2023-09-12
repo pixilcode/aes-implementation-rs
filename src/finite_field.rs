@@ -24,6 +24,12 @@ impl From<u8> for FiniteField {
     }
 }
 
+impl From<&u8> for FiniteField {
+    fn from(value: &u8) -> Self {
+        FiniteField(*value)
+    }
+}
+
 impl Into<u8> for FiniteField {
 	fn into(self) -> u8 {
 		self.0
