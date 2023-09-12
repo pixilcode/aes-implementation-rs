@@ -1,5 +1,43 @@
 //! Calculations done with finite fields, which are represented as bytes
 
+pub struct FiniteField(u8);
+
+impl std::ops::Add for FiniteField {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+		FiniteField(ff_add(self.0, rhs.0))
+    }
+}
+
+impl std::ops::Mul for FiniteField {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+		FiniteField(ff_multiply(self.0, rhs.0))
+    }
+}
+
+impl std::ops::Deref for FiniteField {
+	type Target = u8;
+
+	fn deref(&self) -> &Self::Target {
+		&self.0
+	}
+}
+
+impl From<u8> for FiniteField {
+    fn from(value: u8) -> Self {
+        FiniteField(value)
+    }
+}
+
+impl Into<u8> for FiniteField {
+	fn into(self) -> u8 {
+		self.0
+	}
+}
+
 /// The irreducible finite field associated with AES encryption
 const M_X: u8 = 0x1b;
 
