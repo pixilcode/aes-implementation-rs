@@ -19,7 +19,19 @@ where
 	S: AsRef<[T]>,
 	T: AsRef<[u8]>,
 {
-	todo!()
+	let state = state.as_ref();
+
+    state.as_ref().iter().enumerate().map(|(i, row)| {
+        let row = row.as_ref();
+        let mut new_row = vec![0; row.len()];
+
+        for (j, value) in row.iter().enumerate() {
+            let new_index = (j + row.len() - i) % row.len();
+            new_row[new_index] = *value;
+        }
+
+        new_row
+    }).collect()
 }
 
 #[cfg(test)]
