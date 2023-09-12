@@ -18,14 +18,6 @@ impl std::ops::Mul for FiniteField {
     }
 }
 
-impl std::ops::Deref for FiniteField {
-	type Target = u8;
-
-	fn deref(&self) -> &Self::Target {
-		&self.0
-	}
-}
-
 impl From<u8> for FiniteField {
     fn from(value: u8) -> Self {
         FiniteField(value)
