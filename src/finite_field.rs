@@ -1,5 +1,6 @@
 //! Calculations done with finite fields, which are represented as bytes
 
+#[derive(Clone, Copy)]
 pub struct FiniteField(u8);
 
 impl std::ops::Add for FiniteField {
