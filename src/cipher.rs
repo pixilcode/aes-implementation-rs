@@ -14,7 +14,7 @@ where
 	).collect()
 }
 
-fn shift_bytes<S, T>(state: S) -> Vec<Vec<u8>>
+fn shift_rows<S, T>(state: S) -> Vec<Vec<u8>>
 where
 	S: AsRef<[T]>,
 	T: AsRef<[u8]>,
@@ -64,7 +64,7 @@ mod tests {
         ];
 		assert_eq!(state, sub);
 
-		let state = shift_bytes(state);
+		let state = shift_rows(state);
         let shift = [
             [0xd4, 0xe0, 0xb8, 0x1e],
             [0xbf, 0xb4, 0x41, 0x27],
