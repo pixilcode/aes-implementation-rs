@@ -14,6 +14,14 @@ where
 	).collect()
 }
 
+fn shift_bytes<S, T>(state: S) -> Vec<Vec<u8>>
+where
+	S: AsRef<[T]>,
+	T: AsRef<[u8]>,
+{
+	todo!()
+}
+
 #[cfg(test)]
 mod tests {
 	use super::*;
@@ -42,6 +50,8 @@ mod tests {
             [0x5d, 0x52, 0x11, 0x98],
             [0x30, 0xae, 0xf1, 0xe5],
         ];
+		let state = shift_bytes(state);
+		assert_eq!(state, shift);
 
         let mix = [
             [0x04, 0xe0, 0x48, 0x28],
