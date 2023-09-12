@@ -34,6 +34,14 @@ where
     }).collect()
 }
 
+fn mix_columns<S, T>(state: S) -> Vec<Vec<u8>>
+where
+	S: AsRef<[T]>,
+	T: AsRef<[u8]>,
+{
+    todo!()
+}
+
 #[cfg(test)]
 mod tests {
 	use super::*;
@@ -65,12 +73,14 @@ mod tests {
         ];
 		assert_eq!(state, shift);
 
+        let state = mix_columns(state);
         let mix = [
             [0x04, 0xe0, 0x48, 0x28],
             [0x66, 0xcb, 0xf8, 0x06],
             [0x81, 0x19, 0xd3, 0x26],
             [0xe5, 0x9a, 0x7a, 0x4c],
         ];
+        assert_eq!(state, mix);
 
         let round = [
             [0xa4, 0x68, 0x6b, 0x02],
