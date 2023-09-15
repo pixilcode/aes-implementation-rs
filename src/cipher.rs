@@ -1,4 +1,6 @@
 use crate::constant::{KeyType, S_BOX};
+use crate::debug::{print_state, Step, print_key_sched};
+use crate::debug;
 use crate::finite_field::FiniteField;
 
 fn sub_bytes<S, T>(state: S) -> Vec<Vec<u8>>
@@ -80,7 +82,12 @@ where
         .collect()
 }
 
-pub fn add_round_key<S, T>(state: S, expanded_key: &[u32], round_key: usize, n_b: usize) -> Vec<Vec<u8>>
+fn get_key_sched(expanded_key: &[u32], round_key: usize, n_b: usize) -> &[u32] {
+    let start_idx = round_key * n_b;
+    &expanded_key[start_idx..(start_idx + n_b)]
+}
+
+pub fn add_round_key<S, T>(state: S, key_sched: &[u32]) -> Vec<Vec<u8>>
 where
     S: AsRef<[T]>,
     T: AsRef<[u8]>,
@@ -97,7 +104,7 @@ where
     let mut result: Vec<Vec<u8>> = vec![vec![0; num_cols]; num_rows];
 
     for c in 0..num_cols {
-        let key_word = expanded_key[(round_key * n_b) + c].to_be_bytes();
+        let key_word = key_sched[c].to_be_bytes();
 
         result[0][c] = state[0][c] ^ key_word[0];
         result[1][c] = state[1][c] ^ key_word[1];
@@ -114,6 +121,7 @@ where
 fn cipher(input: impl AsRef<[u8]>, expanded_key: &[u32], key_type: KeyType) -> Vec<u8> {
     let n_b = key_type.n_b();
     let n_r = key_type.n_r();
+
     let state = input
         .as_ref()
         .into_iter()
@@ -128,20 +136,49 @@ fn cipher(input: impl AsRef<[u8]>, expanded_key: &[u32], key_type: KeyType) -> V
 
             result
         });
+    debug!(print_state(0, Step::Input, &state));
 
-    let state = add_round_key(state, expanded_key, 0, n_b);
+    let key_sched = get_key_sched(expanded_key, 0, n_b);
+    debug!(print_key_sched(0, Step::KeySchedule, key_sched));
+
+    let state = add_round_key(state, key_sched);
 
     let state = (1..n_r).into_iter().fold(state, |state, round| {
+        debug!(print_state(round, Step::Start, state));
+
         let state = sub_bytes(state);
+        debug!(print_state(round, Step::SubBytes, state));
+
         let state = shift_rows(state);
+        debug!(print_state(round, Step::ShiftRows, state));
+
         let state = mix_columns(state);
-        let state = add_round_key(state, expanded_key, round, n_b);
+        debug!(print_state(round, Step::MixColumns, state));
+
+        let key_sched = get_key_sched(expanded_key, round, n_b);
+        debug!(print_key_sched(0, Step::KeySchedule, key_sched));
+
+        let state = add_round_key(state, key_sched);
+
         state
     });
 
+    let round = n_r;
+
+    debug!(print_state(round, Step::Start, state));
+
     let state = sub_bytes(state);
+    debug!(print_state(round, Step::SubBytes, state));
+
     let state = shift_rows(state);
-    let state = add_round_key(state, expanded_key, n_r, n_b);
+    debug!(print_state(round, Step::ShiftRows, state));
+
+    let key_sched = get_key_sched(expanded_key, round, n_b);
+    debug!(print_key_sched(0, Step::KeySchedule, key_sched));
+
+    let state = add_round_key(state, key_sched);
+
+    debug!(print_state(round, Step::Output, state));
 
     let mut result = Vec::with_capacity(state.len() * state[0].len());
     for i in 0..state[0].len() {
@@ -232,7 +269,8 @@ mod tests {
             0xe13f0cc8, 0xb6630ca6,
         ];
 
-        let state = add_round_key(state, &expanded_key, 1, 4);
+        let key_sched = get_key_sched(&expanded_key, 1, 4);
+        let state = add_round_key(state, key_sched);
         let round = [
             [0xa4, 0x68, 0x6b, 0x02],
             [0x9c, 0x9f, 0x5b, 0x6a],
