@@ -1,4 +1,8 @@
-use crate::{constant::{INV_S_BOX, KeyType}, finite_field::FiniteField, cipher::add_round_key};
+use crate::constant::{INV_S_BOX, KeyType};
+use crate::finite_field::FiniteField;
+use crate::cipher::{add_round_key, get_key_sched};
+use crate::debug::{Step, print_key_sched, print_state};
+use crate::debug;
 
 fn sub_bytes<S, T>(state: S) -> Vec<Vec<u8>>
 where
@@ -80,8 +84,11 @@ where
 }
 
 fn inverse_cipher(input: impl AsRef<[u8]>, expanded_key: &[u32], key_type: KeyType) -> Vec<u8> {
+    debug!(println!("INVERSE CIPHER (DECRYPT):"));
+
     let n_b = key_type.n_b();
     let n_r = key_type.n_r();
+
     let state = input
         .as_ref()
         .into_iter()
@@ -96,21 +103,51 @@ fn inverse_cipher(input: impl AsRef<[u8]>, expanded_key: &[u32], key_type: KeyTy
 
             result
         });
+    debug!(print_state(0, Step::IInput, &state));
 
-    let state = add_round_key(state, expanded_key, n_r, n_b);
+    let key_sched = get_key_sched(expanded_key, 0, n_b);
+    debug!(print_key_sched(0, Step::IKeySchedule, key_sched));
 
-    let state = (1..n_r).into_iter().rev().fold(state, |state, round| {
-		println!("{}", round);
+    let state = add_round_key(state, key_sched);
+
+    let state = (1..n_r).into_iter().fold(state, |state, round| {
+        debug!(print_state(round, Step::IStart, &state));
+        
         let state = shift_rows(state);
+        debug!(print_state(round, Step::IShiftRows, &state));
+
         let state = sub_bytes(state);
-        let state = add_round_key(state, expanded_key, round, n_b);
+        debug!(print_state(round, Step::ISubBytes, &state));
+
+        let key_sched = get_key_sched(expanded_key, n_r - round, n_b);
+        debug!(print_key_sched(0, Step::IKeySchedule, key_sched));
+
+        let state = add_round_key(state, key_sched);
+        debug!(print_key_sched(0, Step::IAddRoundKey, key_sched));
+
         let state = mix_columns(state);
+
         state
     });
 
+    let round = n_r;
+
+    debug!(print_state(round, Step::IStart, &state));
+
     let state = shift_rows(state);
+    debug!(print_state(round, Step::IShiftRows, &state));
+
     let state = sub_bytes(state);
-    let state = add_round_key(state, expanded_key, 0, n_b);
+    debug!(print_state(round, Step::ISubBytes, &state));
+
+    let key_sched = get_key_sched(expanded_key, n_r - round, n_b);
+    debug!(print_key_sched(0, Step::IKeySchedule, key_sched));
+
+    let state = add_round_key(state, key_sched);
+
+    debug!(print_state(round, Step::IOutput, &state));
+
+    debug!(println!());
 
     let mut result = Vec::with_capacity(state.len() * state[0].len());
     for i in 0..state[0].len() {

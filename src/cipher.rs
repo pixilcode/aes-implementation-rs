@@ -82,7 +82,7 @@ where
         .collect()
 }
 
-fn get_key_sched(expanded_key: &[u32], round_key: usize, n_b: usize) -> &[u32] {
+pub fn get_key_sched(expanded_key: &[u32], round_key: usize, n_b: usize) -> &[u32] {
     let start_idx = round_key * n_b;
     &expanded_key[start_idx..(start_idx + n_b)]
 }
@@ -119,6 +119,8 @@ where
 }
 
 fn cipher(input: impl AsRef<[u8]>, expanded_key: &[u32], key_type: KeyType) -> Vec<u8> {
+    debug!(println!("CIPHER (ENCRYPT):"));
+
     let n_b = key_type.n_b();
     let n_r = key_type.n_r();
 
@@ -144,16 +146,16 @@ fn cipher(input: impl AsRef<[u8]>, expanded_key: &[u32], key_type: KeyType) -> V
     let state = add_round_key(state, key_sched);
 
     let state = (1..n_r).into_iter().fold(state, |state, round| {
-        debug!(print_state(round, Step::Start, state));
+        debug!(print_state(round, Step::Start, &state));
 
         let state = sub_bytes(state);
-        debug!(print_state(round, Step::SubBytes, state));
+        debug!(print_state(round, Step::SubBytes, &state));
 
         let state = shift_rows(state);
-        debug!(print_state(round, Step::ShiftRows, state));
+        debug!(print_state(round, Step::ShiftRows, &state));
 
         let state = mix_columns(state);
-        debug!(print_state(round, Step::MixColumns, state));
+        debug!(print_state(round, Step::MixColumns, &state));
 
         let key_sched = get_key_sched(expanded_key, round, n_b);
         debug!(print_key_sched(0, Step::KeySchedule, key_sched));
@@ -165,20 +167,22 @@ fn cipher(input: impl AsRef<[u8]>, expanded_key: &[u32], key_type: KeyType) -> V
 
     let round = n_r;
 
-    debug!(print_state(round, Step::Start, state));
+    debug!(print_state(round, Step::Start, &state));
 
     let state = sub_bytes(state);
-    debug!(print_state(round, Step::SubBytes, state));
+    debug!(print_state(round, Step::SubBytes, &state));
 
     let state = shift_rows(state);
-    debug!(print_state(round, Step::ShiftRows, state));
+    debug!(print_state(round, Step::ShiftRows, &state));
 
     let key_sched = get_key_sched(expanded_key, round, n_b);
     debug!(print_key_sched(0, Step::KeySchedule, key_sched));
 
     let state = add_round_key(state, key_sched);
 
-    debug!(print_state(round, Step::Output, state));
+    debug!(print_state(round, Step::Output, &state));
+
+    debug!(println!());
 
     let mut result = Vec::with_capacity(state.len() * state[0].len());
     for i in 0..state[0].len() {
