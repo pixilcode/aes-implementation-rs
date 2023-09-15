@@ -106,7 +106,7 @@ pub fn inverse_cipher(input: impl AsRef<[u8]>, expanded_key: &[u32], key_type: K
             result
         });
 
-    let key_sched = get_key_sched(expanded_key, 0, n_b);
+    let key_sched = get_key_sched(expanded_key, n_r, n_b);
     debug!(print_key_sched(0, Step::IKeySchedule, key_sched));
 
     let state = add_round_key(state, key_sched);
@@ -153,7 +153,7 @@ pub fn inverse_cipher(input: impl AsRef<[u8]>, expanded_key: &[u32], key_type: K
         }
     }
 
-    debug!(print_state(round, Step::IOutput, &state));
+    debug!(print_hex_array(round, Step::IOutput, &result));
     debug!(println!());
 
     result
