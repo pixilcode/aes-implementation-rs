@@ -1,5 +1,5 @@
 use crate::constant::{KeyType, S_BOX};
-use crate::debug::{print_state, Step, print_key_sched};
+use crate::debug::{print_state, Step, print_key_sched, print_hex_array};
 use crate::debug;
 use crate::finite_field::FiniteField;
 
@@ -118,8 +118,10 @@ where
         .collect()
 }
 
-fn cipher(input: impl AsRef<[u8]>, expanded_key: &[u32], key_type: KeyType) -> Vec<u8> {
+pub fn cipher(input: impl AsRef<[u8]>, expanded_key: &[u32], key_type: KeyType) -> Vec<u8> {
     debug!(println!("CIPHER (ENCRYPT):"));
+
+    debug!(print_hex_array(0, Step::Input, input.as_ref()));
 
     let n_b = key_type.n_b();
     let n_r = key_type.n_r();
@@ -138,7 +140,6 @@ fn cipher(input: impl AsRef<[u8]>, expanded_key: &[u32], key_type: KeyType) -> V
 
             result
         });
-    debug!(print_state(0, Step::Input, &state));
 
     let key_sched = get_key_sched(expanded_key, 0, n_b);
     debug!(print_key_sched(0, Step::KeySchedule, key_sched));
@@ -158,7 +159,7 @@ fn cipher(input: impl AsRef<[u8]>, expanded_key: &[u32], key_type: KeyType) -> V
         debug!(print_state(round, Step::MixColumns, &state));
 
         let key_sched = get_key_sched(expanded_key, round, n_b);
-        debug!(print_key_sched(0, Step::KeySchedule, key_sched));
+        debug!(print_key_sched(round, Step::KeySchedule, key_sched));
 
         let state = add_round_key(state, key_sched);
 
@@ -176,13 +177,9 @@ fn cipher(input: impl AsRef<[u8]>, expanded_key: &[u32], key_type: KeyType) -> V
     debug!(print_state(round, Step::ShiftRows, &state));
 
     let key_sched = get_key_sched(expanded_key, round, n_b);
-    debug!(print_key_sched(0, Step::KeySchedule, key_sched));
+    debug!(print_key_sched(round, Step::KeySchedule, key_sched));
 
     let state = add_round_key(state, key_sched);
-
-    debug!(print_state(round, Step::Output, &state));
-
-    debug!(println!());
 
     let mut result = Vec::with_capacity(state.len() * state[0].len());
     for i in 0..state[0].len() {
@@ -190,6 +187,10 @@ fn cipher(input: impl AsRef<[u8]>, expanded_key: &[u32], key_type: KeyType) -> V
             result.push(state[j][i]);
         }
     }
+
+    debug!(print_hex_array(round, Step::Output, &result));
+    debug!(println!());
+
     result
 }
 

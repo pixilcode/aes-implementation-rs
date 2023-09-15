@@ -57,7 +57,7 @@ where
     T: AsRef<[u8]>,
 {
     let state = state_to_hex_string(state);
-    println!("round[{round:2}].{step:8} {state}");
+    println!("round[{round:2}].{:8} {state}", step.to_string());
 }
 
 fn state_to_hex_string<S, T>(state: S) -> String
@@ -80,10 +80,19 @@ where
 pub fn print_key_sched<S>(round: usize, step: Step, key_sched: S)
 where S: AsRef<[u32]> {
 	let key_sched = key_sched_to_hex_string(key_sched);
-    println!("round[{round:2}].{step:8} {key_sched}");
+    println!("round[{round:2}].{:8} {key_sched}", step.to_string());
 }
 
 fn key_sched_to_hex_string<S>(key_sched: S) -> String
 where S: AsRef<[u32]> {
 	key_sched.as_ref().iter().map(|word| format!("{:08x}", word)).collect()
+}
+
+pub fn print_hex_array(round: usize, step: Step, array: &[u8]) {
+	let array = hex_array_to_string(array);
+    println!("round[{round:2}].{:8} {array}", step.to_string());
+}
+
+pub fn hex_array_to_string(array: &[u8]) -> String {
+	array.iter().map(|value| format!("{:02x}", value)).collect()
 }

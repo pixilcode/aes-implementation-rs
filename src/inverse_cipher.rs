@@ -1,7 +1,7 @@
 use crate::constant::{INV_S_BOX, KeyType};
 use crate::finite_field::FiniteField;
 use crate::cipher::{add_round_key, get_key_sched};
-use crate::debug::{Step, print_key_sched, print_state};
+use crate::debug::{Step, print_key_sched, print_state, print_hex_array};
 use crate::debug;
 
 fn sub_bytes<S, T>(state: S) -> Vec<Vec<u8>>
@@ -86,6 +86,8 @@ where
 fn inverse_cipher(input: impl AsRef<[u8]>, expanded_key: &[u32], key_type: KeyType) -> Vec<u8> {
     debug!(println!("INVERSE CIPHER (DECRYPT):"));
 
+    debug!(print_hex_array(0, Step::IInput, input.as_ref()));
+
     let n_b = key_type.n_b();
     let n_r = key_type.n_r();
 
@@ -103,7 +105,6 @@ fn inverse_cipher(input: impl AsRef<[u8]>, expanded_key: &[u32], key_type: KeyTy
 
             result
         });
-    debug!(print_state(0, Step::IInput, &state));
 
     let key_sched = get_key_sched(expanded_key, 0, n_b);
     debug!(print_key_sched(0, Step::IKeySchedule, key_sched));
@@ -120,10 +121,10 @@ fn inverse_cipher(input: impl AsRef<[u8]>, expanded_key: &[u32], key_type: KeyTy
         debug!(print_state(round, Step::ISubBytes, &state));
 
         let key_sched = get_key_sched(expanded_key, n_r - round, n_b);
-        debug!(print_key_sched(0, Step::IKeySchedule, key_sched));
+        debug!(print_key_sched(round, Step::IKeySchedule, key_sched));
 
         let state = add_round_key(state, key_sched);
-        debug!(print_key_sched(0, Step::IAddRoundKey, key_sched));
+        debug!(print_state(round, Step::IAddRoundKey, &state));
 
         let state = mix_columns(state);
 
@@ -141,13 +142,9 @@ fn inverse_cipher(input: impl AsRef<[u8]>, expanded_key: &[u32], key_type: KeyTy
     debug!(print_state(round, Step::ISubBytes, &state));
 
     let key_sched = get_key_sched(expanded_key, n_r - round, n_b);
-    debug!(print_key_sched(0, Step::IKeySchedule, key_sched));
+    debug!(print_key_sched(round, Step::IKeySchedule, key_sched));
 
     let state = add_round_key(state, key_sched);
-
-    debug!(print_state(round, Step::IOutput, &state));
-
-    debug!(println!());
 
     let mut result = Vec::with_capacity(state.len() * state[0].len());
     for i in 0..state[0].len() {
@@ -155,6 +152,10 @@ fn inverse_cipher(input: impl AsRef<[u8]>, expanded_key: &[u32], key_type: KeyTy
             result.push(state[j][i]);
         }
     }
+
+    debug!(print_state(round, Step::IOutput, &state));
+    debug!(println!());
+
     result
 }
 
