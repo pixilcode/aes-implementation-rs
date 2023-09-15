@@ -83,7 +83,7 @@ where
         .collect()
 }
 
-fn inverse_cipher(input: impl AsRef<[u8]>, expanded_key: &[u32], key_type: KeyType) -> Vec<u8> {
+pub fn inverse_cipher(input: impl AsRef<[u8]>, expanded_key: &[u32], key_type: KeyType) -> Vec<u8> {
     debug!(println!("INVERSE CIPHER (DECRYPT):"));
 
     debug!(print_hex_array(0, Step::IInput, input.as_ref()));
