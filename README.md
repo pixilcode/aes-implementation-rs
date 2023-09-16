@@ -11,7 +11,8 @@ I only used the resources listed in the project in order to implement the AES en
 
 ## Appendix C
 
-This correctly encrypts and decrypts the examples provided in Appendix C.
+This correctly encrypts and decrypts the examples provided in Appendix C. The steps in between don't
+match the output of Appendix C, and I wasn't able to figure out why, but the final output is correct.
 
 ## Autograder
 
